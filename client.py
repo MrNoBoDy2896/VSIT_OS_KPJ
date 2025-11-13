@@ -1,0 +1,17 @@
+import socket as s
+
+client = s.socket(s.AF_INET, s.SOCK_STREAM)
+
+client.connect(("localhost", 1111))
+
+flag = True
+while flag:
+    client.send(input("Я: ").encode("utf-8"))
+    msg = client.recv(1024).decode("utf-8")
+    if msg == "q":
+        flag = False
+    else:
+        print(msg)
+
+
+client.close()
