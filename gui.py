@@ -3,10 +3,14 @@ from db import *
 
 root = Tk()
 root.title("Enigma Chat")
-root.geometry("590x400")
+root.geometry("600x400")
 
 container = Frame(root)
 container.pack(fill="both", expand=True)
+
+
+container.rowconfigure(0, weight=1)
+container.columnconfigure(0, weight=1)
 
 pages = {}
 
@@ -18,6 +22,7 @@ def create_page(name):
 
 def show_page(name):
     pages[name].tkraise()
+
 
 welcome_page = create_page("welcome")
 
@@ -85,16 +90,17 @@ Button(register_page, text="Назад", command=lambda: show_page("welcome")).p
 
 main_page = create_page("main")
 
-# Левая панель — список чатов
+#чаты (левая панель)
 sidebar = Frame(main_page, width=250, bg="#f0f0f0")
-sidebar.pack(side=LEFT, fill=Y)
-sidebar.pack_propagate(False)
+sidebar.grid(row=0, column=0, sticky="ns")
+sidebar.grid_propagate(False)
 
 Label(sidebar, text="Чаты", font=("Comic Sans MS", 16),
       bg="#ddd").pack(fill=X)
 
-chat_list_canvas = Canvas(sidebar, bg="#f0f0f0")
+chat_list_canvas = Canvas(sidebar, bg="#f0f0f0", highlightthickness=0)
 chat_list_canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
 scrollbar = Scrollbar(sidebar, command=chat_list_canvas.yview)
 scrollbar.pack(side=RIGHT, fill=Y)
 chat_list_canvas.configure(yscrollcommand=scrollbar.set)
@@ -116,32 +122,64 @@ def update_chat_list(user_id):
     chat_list_frame.update_idletasks()
     chat_list_canvas.configure(scrollregion=chat_list_canvas.bbox("all"))
 
+
 chat_area = Frame(main_page, bg="white")
-chat_area.pack(side=RIGHT, fill=BOTH, expand=True)
+chat_area.grid(row=0, column=1, sticky="nsew")
 
-chat_title = Label(chat_area, text="Выберите чат", font=("Comic Sans MS", 18),
-                   bg="#ddd")
-chat_title.pack(fill=X)
+main_page.columnconfigure(1, weight=1)
+main_page.rowconfigure(0, weight=1)
 
+chat_area.rowconfigure(1, weight=1)
+chat_area.columnconfigure(0, weight=1)
+
+# шапка
+chat_title = Label(chat_area, bg="#ddd", font=("Comic Sans MS", 16), anchor="w", padx=8)
+chat_title.grid(row=0, column=0, sticky="we")
+
+# сам чат
 messages_display = Frame(chat_area, bg="white")
-messages_display.pack(fill=BOTH, expand=True)
+messages_display.grid(row=1, column=0, sticky="nsew")
+messages_display.rowconfigure(0, weight=1)
+messages_display.columnconfigure(0, weight=1)
 
-msg_canvas = Canvas(messages_display, bg="white")
-msg_canvas.pack(side=LEFT, fill=BOTH, expand=True)
+msg_canvas = Canvas(messages_display, bg="white", highlightthickness=0)
+msg_canvas.grid(row=0, column=0, sticky="nsew")
 
-msg_scrollbar = Scrollbar(messages_display, command=msg_canvas.yview)
-msg_scrollbar.pack(side=RIGHT, fill=Y)
+msg_scrollbar = Scrollbar(messages_display, orient="vertical", command=msg_canvas.yview)
+msg_scrollbar.grid(row=0, column=1, sticky="ns")
 
 msg_canvas.configure(yscrollcommand=msg_scrollbar.set)
 
 msg_frame = Frame(msg_canvas, bg="white")
-msg_canvas.create_window((0, 0), window=msg_frame, anchor="nw")
+canvas_window = msg_canvas.create_window((0, 0), window=msg_frame, anchor="nw")
 
-input_frame = Frame(chat_area, bg="white")
-input_frame.pack(fill=X)
+def _on_canvas_config(event):
+    msg_canvas.itemconfig(canvas_window, width=event.width)
+msg_canvas.bind("<Configure>", _on_canvas_config)
+
+msg_frame.bind("<Configure>", lambda e: msg_canvas.configure(scrollregion=msg_canvas.bbox("all")))
+
+def _on_mousewheel(event):
+    if event.num == 4:
+        msg_canvas.yview_scroll(-1, "units")
+    elif event.num == 5:
+        msg_canvas.yview_scroll(1, "units")
+    else:
+        msg_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+# биндим на canvas, не на весь root, чтобы прокрутка работала когда курсор над чатом
+msg_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+msg_canvas.bind_all("<Button-4>", _on_mousewheel)
+msg_canvas.bind_all("<Button-5>", _on_mousewheel)
+
+
+# инпут
+input_frame = Frame(chat_area, bg="white", pady=4)
+input_frame.grid(row=2, column=0, sticky="we")
+input_frame.columnconfigure(0, weight=1)
 
 msg_entry = Entry(input_frame, font=("Comic Sans MS", 14))
-msg_entry.pack(side=LEFT, fill=X, expand=True, padx=5, pady=5)
+msg_entry.grid(row=0, column=0, sticky="we", padx=(8,5), pady=6)
 
 def send_message():
     text = msg_entry.get()
@@ -150,14 +188,14 @@ def send_message():
         msg_entry.delete(0, END)
         display_messages(main_page.current_chat)
 
-Button(input_frame, text="Отправить", command=send_message).pack(side=RIGHT, padx=5)
+send_button = Button(input_frame, text="Отправить", command=send_message)
+send_button.grid(row=0, column=1, sticky="e", padx=(5,8), pady=6)
 
 
 def select_chat(chat_id, other_id):
     main_page.current_chat = chat_id
     chat_title.config(text=f"Чат с {get_user_login(other_id)}")
     display_messages(chat_id)
-
 
 def display_messages(chat_id):
     for w in msg_frame.winfo_children():
@@ -177,7 +215,7 @@ def display_messages(chat_id):
                 font=("Comic Sans MS", 12),
                 padx=10,
                 pady=6,
-                wraplength=350,
+                wraplength=400,
                 justify=LEFT
             )
             bubble.pack(anchor="e", padx=10, pady=3)   #  ПРАВО
@@ -190,15 +228,13 @@ def display_messages(chat_id):
                 font=("Comic Sans MS", 12),
                 padx=10,
                 pady=6,
-                wraplength=350,
+                wraplength=400,
                 justify=LEFT
             )
             bubble.pack(anchor="w", padx=10, pady=3)   # ЛЕВО
 
     msg_frame.update_idletasks()
-    msg_canvas.configure(scrollregion=msg_canvas.bbox("all"))
     msg_canvas.yview_moveto(1.0)
-
 
 def open_main_chat(user_id):
     main_page.user_id = user_id
