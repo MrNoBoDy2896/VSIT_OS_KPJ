@@ -126,6 +126,17 @@ chat_title.pack(fill=X)
 messages_display = Frame(chat_area, bg="white")
 messages_display.pack(fill=BOTH, expand=True)
 
+msg_canvas = Canvas(messages_display, bg="white")
+msg_canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+msg_scrollbar = Scrollbar(messages_display, command=msg_canvas.yview)
+msg_scrollbar.pack(side=RIGHT, fill=Y)
+
+msg_canvas.configure(yscrollcommand=msg_scrollbar.set)
+
+msg_frame = Frame(msg_canvas, bg="white")
+msg_canvas.create_window((0, 0), window=msg_frame, anchor="nw")
+
 input_frame = Frame(chat_area, bg="white")
 input_frame.pack(fill=X)
 
@@ -135,7 +146,7 @@ msg_entry.pack(side=LEFT, fill=X, expand=True, padx=5, pady=5)
 def send_message():
     text = msg_entry.get()
     if text and hasattr(main_page, "current_chat"):
-        add_message(text, "", main_page.current_chat)
+        add_message(text, "", main_page.current_chat, main_page.user_id)
         msg_entry.delete(0, END)
         display_messages(main_page.current_chat)
 
@@ -149,28 +160,45 @@ def select_chat(chat_id, other_id):
 
 
 def display_messages(chat_id):
-    for w in messages_display.winfo_children():
+    for w in msg_frame.winfo_children():
         w.destroy()
 
     msgs = get_chat_messages(chat_id)
 
-    canvas = Canvas(messages_display)
-    canvas.pack(side=LEFT, fill=BOTH, expand=True)
-
-    msg_scroll = Scrollbar(messages_display, command=canvas.yview)
-    msg_scroll.pack(side=RIGHT, fill=Y)
-    canvas.configure(yscrollcommand=msg_scroll.set)
-
-    frame = Frame(canvas)
-    canvas.create_window((0, 0), window=frame, anchor="nw")
-
     for msg in msgs:
-        Label(frame, text=msg[1], bg="#e3f2fd",
-              anchor="w", justify=LEFT,
-              font=("Comic Sans MS", 12), wraplength=350).pack(fill=X, pady=2, padx=5)
+        msg_id, text, code, chat, author = msg
 
-    frame.update_idletasks()
-    canvas.configure(scrollregion=canvas.bbox("all"))
+        # моё
+        if author == main_page.user_id:
+            bubble = Label(
+                msg_frame,
+                text=text,
+                bg="#c8e6ff",      # голубой
+                font=("Comic Sans MS", 12),
+                padx=10,
+                pady=6,
+                wraplength=350,
+                justify=LEFT
+            )
+            bubble.pack(anchor="e", padx=10, pady=3)   #  ПРАВО
+
+        else:# сабеседник
+            bubble = Label(
+                msg_frame,
+                text=text,
+                bg="#e6e6e6",      # серый
+                font=("Comic Sans MS", 12),
+                padx=10,
+                pady=6,
+                wraplength=350,
+                justify=LEFT
+            )
+            bubble.pack(anchor="w", padx=10, pady=3)   # ЛЕВО
+
+    msg_frame.update_idletasks()
+    msg_canvas.configure(scrollregion=msg_canvas.bbox("all"))
+    msg_canvas.yview_moveto(1.0)
+
 
 def open_main_chat(user_id):
     main_page.user_id = user_id

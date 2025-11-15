@@ -2,7 +2,7 @@ import sqlite3
 with sqlite3.connect("enigma_db.db") as db:
     cursor = db.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS users(user_id INTEGER PRIMARY KEY AUTOINCREMENT, login TEXT, password TEXT, chats TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS messages(msg_id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, code TEXT, chat INTEGER)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS messages(msg_id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, code TEXT, chat INTEGER, author INTEGER)")
     cursor.execute("CREATE TABLE IF NOT EXISTS chat(chat_id INTEGER PRIMARY KEY AUTOINCREMENT, author INTEGER, address INTEGER)")
 
 def add_user(login, password)  :
@@ -53,10 +53,10 @@ def get_chat_messages(chat_id):
         cursor.execute(f"SELECT * FROM messages WHERE chat = {chat_id} ORDER BY msg_id ASC")
         return cursor.fetchall()
 
-def add_message(text, code, chat_id):
+def add_message(text, code, chat_id, author):
     with sqlite3.connect("enigma_db.db") as db:
         cursor = db.cursor()
-        cursor.execute(f"INSERT INTO messages (text, code, chat) VALUES ('{text}', '{code}', {chat_id})")
+        cursor.execute(f"INSERT INTO messages (text, code, chat, author) VALUES ('{text}', '{code}', {chat_id}, {author})")
         db.commit()
 
 def create_chat(user1_id, user2_id):
