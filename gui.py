@@ -1,253 +1,181 @@
-from logging import Logger
 from tkinter import *
 from db import *
 
-from db import add_user
-
 root = Tk()
 root.title("Enigma Chat")
-root.geometry("600x300")
-#root.iconbitmap("путь к файлу иконки")
-#/////////////////////////////////Регистрация и вход///////////////////////////////////////
-login_enter_label = Label(root, text="Логин", font=("Comic Sans MS", 20))
-password_enter_label = Label(root, text="Пароль", font=("Comic Sans MS", 20))
+root.geometry("590x400")
 
-login_enter_entry = Entry(root, font=("Comic Sans MS", 20))
-password_enter_entry = Entry(root, font=("Comic Sans MS", 20))
+container = Frame(root)
+container.pack(fill="both", expand=True)
+
+pages = {}
+
+def create_page(name):
+    frame = Frame(container)
+    frame.grid(row=0, column=0, sticky="nsew")
+    pages[name] = frame
+    return frame
+
+def show_page(name):
+    pages[name].tkraise()
+
+welcome_page = create_page("welcome")
+
+Label(welcome_page, text="Enigma Chat", font=("Comic Sans MS", 24)).pack(pady=40)
+
+Button(welcome_page, text="Вход", font=("Comic Sans MS", 18),
+       command=lambda: show_page("login")).pack(pady=10)
+
+Button(welcome_page, text="Регистрация", font=("Comic Sans MS", 18),
+       command=lambda: show_page("register")).pack(pady=10)
 
 
-def gui_reg():
-    password = password_enter_entry.get()
-    login = login_enter_entry.get()
-    add_user(login, password)
+login_page = create_page("login")
 
-    login_enter_label.place_forget()
-    password_enter_label.place_forget()
-    login_enter_entry.place_forget()
-    password_enter_entry.place_forget()
-    reg_enter_button.place_forget()
+Label(login_page, text="Вход", font=("Comic Sans MS", 22)).pack(pady=20)
 
-def gui_log_in():
-    password = password_enter_entry.get()
-    login = login_enter_entry.get()
+login_entry_l = Entry(login_page, font=("Comic Sans MS", 16))
+login_entry_l.pack(pady=5)
+login_entry_l.insert(0, "")
+
+password_entry_l = Entry(login_page, font=("Comic Sans MS", 16), show="*")
+password_entry_l.pack(pady=5)
+password_entry_l.insert(0, "")
+
+def log_in_gui():
+    login = login_entry_l.get()
+    password = password_entry_l.get()
     result = log_in(login, password)
 
-    if isinstance(result, int):  # Если вернулся user_id (успешный вход)
-        main_window(result)
+    if isinstance(result, int):
+        open_main_chat(result)
     else:
         print(result)
 
-reg_enter_button = Button(root, text="Зарегистрироваться", font=("Comic Sans MS", 20), command=gui_reg)
-log_in_enter_button = Button(root, text="Войти", font=("Comic Sans MS", 20), command=gui_log_in)
+Button(login_page, text="Войти", font=("Comic Sans MS", 18),
+       command=log_in_gui).pack(pady=15)
+
+Button(login_page, text="Назад", command=lambda: show_page("welcome")).pack()
 
 
-def reg_window():
-    reg_button.place_forget()
-    log_in_button.place_forget()
+register_page = create_page("register")
 
-    title_lable.config(text = "Регистрация")
+Label(register_page, text="Регистрация", font=("Comic Sans MS", 22)).pack(pady=20)
 
-    login_enter_label.place(relx=0.1 , rely=0.3)
-    password_enter_label.place(relx= 0.1, rely=0.5)
-    login_enter_entry.place(relx= 0.3, rely=0.3)
-    password_enter_entry.place(relx= 0.3, rely=0.5)
-    reg_enter_button.place(relx= 0.43, rely=0.7)
+login_entry_r = Entry(register_page, font=("Comic Sans MS", 16))
+login_entry_r.pack(pady=5)
+login_entry_r.insert(0, "")
 
-def log_in_window():
-    reg_button.place_forget()
-    log_in_button.place_forget()
+password_entry_r = Entry(register_page, font=("Comic Sans MS", 16), show="*")
+password_entry_r.pack(pady=5)
+password_entry_r.insert(0, "")
 
-    title_lable.config(text="Вход")
+def register_gui():
+    login = login_entry_r.get()
+    password = password_entry_r.get()
 
-    login_enter_label.place(relx=0.1, rely=0.3)
-    password_enter_label.place(relx=0.1, rely=0.5)
-    login_enter_entry.place(relx=0.3, rely=0.3)
-    password_enter_entry.place(relx=0.3, rely=0.5)
-    log_in_enter_button.place(relx=0.43, rely=0.7)
+    add_user(login, password)
+    show_page("login")
 
-#/////////////////////////////////////////////////////////////////////////////////////
+Button(register_page, text="Зарегистрироваться", font=("Comic Sans MS", 18),
+       command=register_gui).pack(pady=15)
 
-#///////////////////////////////////Главное окно//////////////////////////////////////
-def main_window(user_id):
-    chat_frame.pack_forget()
-    input_frame.pack_forget()
-
-    title_lable.place_forget()
-    reg_button.place_forget()
-    log_in_button.place_forget()
-    login_enter_label.place_forget()
-    password_enter_label.place_forget()
-    login_enter_entry.place_forget()
-    password_enter_entry.place_forget()
-    reg_enter_button.place_forget()
-    log_in_enter_button.place_forget()
+Button(register_page, text="Назад", command=lambda: show_page("welcome")).pack()
 
 
-    main_container.pack(fill=BOTH, expand=True)
+main_page = create_page("main")
 
-    sidebar_frame = Frame(main_container, width=200, bg='#f0f0f0')
-    sidebar_frame.pack(side=LEFT, fill=Y)
-    sidebar_frame.pack_propagate(False)
+# Левая панель — список чатов
+sidebar = Frame(main_page, width=250, bg="#f0f0f0")
+sidebar.pack(side=LEFT, fill=Y)
+sidebar.pack_propagate(False)
 
-    sidebar_title = Label(sidebar_frame, text="Чаты", font=("Comic Sans MS", 16),
-                          bg='#e0e0e0', pady=10)
-    sidebar_title.pack(fill=X)
+Label(sidebar, text="Чаты", font=("Comic Sans MS", 16),
+      bg="#ddd").pack(fill=X)
 
-    chat_canvas = Canvas(sidebar_frame, bg='#f0f0f0', highlightthickness=0)
-    scrollbar = Scrollbar(sidebar_frame, orient=VERTICAL, command=chat_canvas.yview)
-    chat_scrollable_frame = Frame(chat_canvas, bg='#f0f0f0')
+chat_list_canvas = Canvas(sidebar, bg="#f0f0f0")
+chat_list_canvas.pack(side=LEFT, fill=BOTH, expand=True)
+scrollbar = Scrollbar(sidebar, command=chat_list_canvas.yview)
+scrollbar.pack(side=RIGHT, fill=Y)
+chat_list_canvas.configure(yscrollcommand=scrollbar.set)
 
-    chat_scrollable_frame.bind(
-        "<Configure>",
-        lambda e: chat_canvas.configure(scrollregion=chat_canvas.bbox("all"))
-    )
+chat_list_frame = Frame(chat_list_canvas, bg="#f0f0f0")
+chat_list_canvas.create_window((0, 0), window=chat_list_frame, anchor="nw")
 
-    chat_canvas.create_window((0, 0), window=chat_scrollable_frame, anchor="nw")
-    chat_canvas.configure(yscrollcommand=scrollbar.set)
-
-    chat_canvas.pack(side=LEFT, fill=BOTH, expand=True)
-    scrollbar.pack(side=RIGHT, fill=Y)
-
-    # ЧАТ
-
-    chat_frame.pack(side=RIGHT, fill=BOTH, expand=True)
-
-    chat_title = Label(chat_frame, text="Выберите чат", font=("Comic Sans MS", 16),
-                       bg='#e0e0e0', pady=10)
-    chat_title.pack(fill=X)
-
-    messages_display_frame = Frame(chat_frame, bg='white')
-    messages_display_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
-
-    # Н ечистим черновик
-    input_frame.pack(fill=X, padx=10, pady=10)
-
-    message_entry = Entry(input_frame, font=("Comic Sans MS", 14))
-    message_entry.pack(side=LEFT, fill=X, expand=True, padx=(0, 10))
-
-    def send_message():
-        text = message_entry.get()
-        if text and hasattr(chat_frame, 'current_chat_id'):
-            add_message(text, "", chat_frame.current_chat_id)
-            display_messages(chat_frame.current_chat_id, messages_display_frame)
-            message_entry.delete(0, END)
-
-    send_button = Button(input_frame, text="Отправить", font=("Comic Sans MS", 12),
-                         command=send_message)
-    send_button.pack(side=RIGHT)
-
-    new_chat_button = Button(sidebar_frame, text="+ Новый чат", font=("Comic Sans MS", 12),
-                             bg='#4CAF50', fg='white', relief=FLAT, pady=10,
-                             command=lambda: create_new_chat_window(user_id, chat_scrollable_frame, chat_title,
-                                                                    messages_display_frame, chat_frame))
-    new_chat_button.pack(fill=X, padx=5, pady=5)
-    load_user_chats(user_id, chat_scrollable_frame, chat_title, messages_display_frame, chat_frame)
-
-
-def load_user_chats(user_id, chat_scrollable_frame, chat_title, messages_frame, chat_frame):
-    chats = get_user_chats(user_id)
-    for chat in chats:
-        chat_id, other_user_id = chat
-        other_user_login = get_user_login(other_user_id)
-        chat_btn = Button(chat_scrollable_frame, text=other_user_login, font=("Comic Sans MS", 12),
-                          bg='#ffffff', relief=FLAT, pady=10, width=20,
-                          command=lambda cid=chat_id, uid=other_user_id, user=other_user_login:
-                          select_chat(cid, uid, user, chat_title, messages_frame, chat_frame))
-        chat_btn.pack(fill=X, padx=5, pady=2)
-
-
-def select_chat(chat_id, other_user_id, user_login, chat_title, messages_frame, chat_frame):
-    chat_title.config(text=f"Чат с {user_login}")
-    chat_frame.current_chat_id = chat_id
-    chat_frame.current_other_user_id = other_user_id
-    display_messages(chat_id, messages_frame)
-
-    input_frame.pack_forget()
-    input_frame.pack(fill=X, padx=10, pady=10)
-
-
-def display_messages(chat_id, messages_display_frame):
-    for widget in messages_display_frame.winfo_children():
+def update_chat_list(user_id):
+    for widget in chat_list_frame.winfo_children():
         widget.destroy()
 
-    messages = get_chat_messages(chat_id)
+    chats = get_user_chats(user_id)
+    for chat_id, other in chats:
+        btn = Button(chat_list_frame, text=get_user_login(other),
+                     font=("Comic Sans MS", 14),
+                     command=lambda c=chat_id, o=other: select_chat(c, o))
+        btn.pack(fill=X, pady=2)
 
-    msg_canvas = Canvas(messages_display_frame, bg='white', highlightthickness=0)
-    msg_scrollbar = Scrollbar(messages_display_frame, orient=VERTICAL, command=msg_canvas.yview)
-    msg_scrollable_frame = Frame(msg_canvas, bg='white')
+    chat_list_frame.update_idletasks()
+    chat_list_canvas.configure(scrollregion=chat_list_canvas.bbox("all"))
 
-    msg_scrollable_frame.bind(
-        "<Configure>",
-        lambda e: msg_canvas.configure(scrollregion=msg_canvas.bbox("all"))
-    )
+chat_area = Frame(main_page, bg="white")
+chat_area.pack(side=RIGHT, fill=BOTH, expand=True)
 
-    msg_canvas.create_window((0, 0), window=msg_scrollable_frame, anchor="nw")
-    msg_canvas.configure(yscrollcommand=msg_scrollbar.set)
+chat_title = Label(chat_area, text="Выберите чат", font=("Comic Sans MS", 18),
+                   bg="#ddd")
+chat_title.pack(fill=X)
 
-    msg_canvas.pack(side=LEFT, fill=BOTH, expand=True)
-    msg_scrollbar.pack(side=RIGHT, fill=Y)
+messages_display = Frame(chat_area, bg="white")
+messages_display.pack(fill=BOTH, expand=True)
 
-    for msg in messages:
-        msg_id, text, code, chat = msg
-        msg_label = Label(msg_scrollable_frame, text=text, font=("Comic Sans MS", 12),
-                          bg='#e3f2fd', relief=RAISED, padx=10, pady=5, wraplength=400,
-                          justify=LEFT)
-        msg_label.pack(fill=X, padx=5, pady=2, anchor='w')
-    msg_canvas.update_idletasks()
-    msg_canvas.yview_moveto(1.0)
+input_frame = Frame(chat_area, bg="white")
+input_frame.pack(fill=X)
 
+msg_entry = Entry(input_frame, font=("Comic Sans MS", 14))
+msg_entry.pack(side=LEFT, fill=X, expand=True, padx=5, pady=5)
 
-def create_new_chat_window(user_id, chat_scrollable_frame, chat_title, messages_frame, chat_frame):
-    """Окно для создания нового чата"""
-    new_chat_window = Toplevel(root)
-    new_chat_window.title("Новый чат")
-    new_chat_window.geometry("300x400")
+def send_message():
+    text = msg_entry.get()
+    if text and hasattr(main_page, "current_chat"):
+        add_message(text, "", main_page.current_chat)
+        msg_entry.delete(0, END)
+        display_messages(main_page.current_chat)
 
-    Label(new_chat_window, text="Выберите пользователя:", font=("Comic Sans MS", 14)).pack(pady=10)
-    all_users = get_all_users()
-
-    users_frame = Frame(new_chat_window)
-    users_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
-
-    for user in all_users:
-        user_id_other, user_login = user
-        if user_id_other != user_id and not chat_exists(user_id, user_id_other):
-            user_btn = Button(users_frame, text=user_login, font=("Comic Sans MS", 12),
-                              command=lambda uid=user_id_other, login=user_login:
-                              create_chat_and_close(user_id, uid, login, new_chat_window,
-                                                    chat_scrollable_frame, chat_title, messages_frame, chat_frame))
-            user_btn.pack(fill=X, pady=2)
-
-    if not any(user[0] != user_id and not chat_exists(user_id, user[0]) for user in all_users):
-        Label(users_frame, text="Нет пользователей для создания чата",
-              font=("Comic Sans MS", 10), fg='gray').pack(pady=20)
+Button(input_frame, text="Отправить", command=send_message).pack(side=RIGHT, padx=5)
 
 
-def create_chat_and_close(user1_id, user2_id, user2_login, window, chat_scrollable_frame, chat_title, messages_frame,
-                          chat_frame):
-    """Создать чат и закрыть окно выбора"""
-    chat_id = create_chat(user1_id, user2_id)
-    window.destroy()
+def select_chat(chat_id, other_id):
+    main_page.current_chat = chat_id
+    chat_title.config(text=f"Чат с {get_user_login(other_id)}")
+    display_messages(chat_id)
 
-    chat_btn = Button(chat_scrollable_frame, text=user2_login, font=("Comic Sans MS", 12),
-                      bg='#ffffff', relief=FLAT, pady=10, width=20,
-                      command=lambda cid=chat_id, uid=user2_id, user=user2_login:
-                      select_chat(cid, uid, user, chat_title, messages_frame, chat_frame))
-    chat_btn.pack(fill=X, padx=5, pady=2)
 
-    select_chat(chat_id, user2_id, user2_login, chat_title, messages_frame, chat_frame)
+def display_messages(chat_id):
+    for w in messages_display.winfo_children():
+        w.destroy()
 
-#/////////////////////////////////////////////////////////////////////////////////////
-main_container = Frame(root)
-chat_frame = Frame(main_container, bg='white')
-input_frame = Frame(chat_frame, bg='white')
+    msgs = get_chat_messages(chat_id)
 
-title_lable = Label(root, text="Enigma Chat", font=("Comic Sans MS", 20))
-reg_button = Button(root, text="Регистрация", font=("Comic Sans MS", 20), command=reg_window)
-log_in_button = Button(root, text="Вход", font=("Comic Sans MS", 20), command=log_in_window)
+    canvas = Canvas(messages_display)
+    canvas.pack(side=LEFT, fill=BOTH, expand=True)
 
-title_lable.place(relx= 0.38, rely = 0.1)
-reg_button.place(relx= 0.35, rely = 0.3)
-log_in_button.place(relx= 0.43, rely = 0.6)
+    msg_scroll = Scrollbar(messages_display, command=canvas.yview)
+    msg_scroll.pack(side=RIGHT, fill=Y)
+    canvas.configure(yscrollcommand=msg_scroll.set)
 
+    frame = Frame(canvas)
+    canvas.create_window((0, 0), window=frame, anchor="nw")
+
+    for msg in msgs:
+        Label(frame, text=msg[1], bg="#e3f2fd",
+              anchor="w", justify=LEFT,
+              font=("Comic Sans MS", 12), wraplength=350).pack(fill=X, pady=2, padx=5)
+
+    frame.update_idletasks()
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
+def open_main_chat(user_id):
+    main_page.user_id = user_id
+    update_chat_list(user_id)
+    show_page("main")
+
+show_page("welcome")
 root.mainloop()

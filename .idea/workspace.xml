@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25ffc3d2-1cb4-4fab-b682-f1e554ab9925" name="Changes" comment="Попытка сделать главное окно. Добавлено много функций для бд, пропадает фрейм ввода сообщений при входе в определённый чат">
-      <change beforePath="$PROJECT_DIR$/.idea/VSIT_OS_KPJ.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/VSIT_OS_KPJ.iml" afterDir="false" />
+    <list default="true" id="25ffc3d2-1cb4-4fab-b682-f1e554ab9925" name="Changes" comment="Всё ещё пропадает фрейм ввода сообщений при входе в определённый чат">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/enigma_db.db" beforeDir="false" afterPath="$PROJECT_DIR$/enigma_db.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui.py" afterDir="false" />
@@ -28,6 +27,11 @@
         <option value="Alena &lt;alekstucka@gmail.com&gt;" />
         <option value="Alena" />
       </list>
+    </option>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -57,18 +61,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.client.executor&quot;: &quot;Run&quot;,
-    &quot;Python.db.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gui.executor&quot;: &quot;Run&quot;,
-    &quot;Python.server.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Alena/PycharmProjects/VSIT_OS_KPJ&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.client.executor": "Run",
+    "Python.db.executor": "Run",
+    "Python.gui.executor": "Run",
+    "Python.server.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "try-frame-pages",
+    "last_opened_file_path": "C:/Users/Alena/PycharmProjects/VSIT_OS_KPJ"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -117,7 +121,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763052760969</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Всё ещё пропадает фрейм ввода сообщений при входе в определённый чат">
+      <option name="closed" value="true" />
+      <created>1763195192420</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1763195192420</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -135,6 +147,7 @@
     <MESSAGE value="пробный коммит" />
     <MESSAGE value="Сделаны окна регистрации и входа" />
     <MESSAGE value="Попытка сделать главное окно. Добавлено много функций для бд, пропадает фрейм ввода сообщений при входе в определённый чат" />
-    <option name="LAST_COMMIT_MESSAGE" value="Попытка сделать главное окно. Добавлено много функций для бд, пропадает фрейм ввода сообщений при входе в определённый чат" />
+    <MESSAGE value="Всё ещё пропадает фрейм ввода сообщений при входе в определённый чат" />
+    <option name="LAST_COMMIT_MESSAGE" value="Всё ещё пропадает фрейм ввода сообщений при входе в определённый чат" />
   </component>
 </project>
