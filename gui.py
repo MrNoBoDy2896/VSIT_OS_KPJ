@@ -1,10 +1,10 @@
 from tkinter import *
-from tkinter import messagebox, ttk
+from tkinter import messagebox
+
 from client_api import ChatClient
 from enigma import enigma_encrypt
-import json
 
-client = ChatClient('192.168.0.21', 1111)
+client = ChatClient('localhost', 8080)
 
 root = Tk()
 root.title("Enigma Chat")
@@ -569,13 +569,4 @@ def open_encryption_settings_dialog():
     Button(buttons_frame, text="Выйти", font=("Comic Sans MS", 10),
            command=dialog.destroy).pack(side=LEFT, padx=5)
 
-
-def get_user_login(user_id):
-    result = client.get_user_login(user_id)
-    if result['status'] == 'success':
-        return result['login']
-    return "Неизвестный пользователь"
-
-
 show_page("welcome")
-root.mainloop()

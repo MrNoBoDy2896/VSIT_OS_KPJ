@@ -3,7 +3,7 @@ import json
 
 
 class ChatClient:
-    def __init__(self, host='localhost', port=1111):
+    def __init__(self, host='192.168.0.21', port=8080):
         self.host = host
         self.port = port
         self.socket = None

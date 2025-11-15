@@ -3,43 +3,16 @@ import threading
 import sqlite3
 import json
 
+from db import DatabaseClient
+
 
 class ChatServer:
-    def __init__(self, host='0.0.0.0', port=1111):
+    def __init__(self, host='0.0.0.0', port=8080):
         self.host = host
         self.port = port
         self.clients = {}
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.setup_database()
-
-    def setup_database(self):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users(
-                    user_id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    login TEXT, password TEXT
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS messages(
-                    msg_id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    text TEXT, code TEXT, chat INTEGER, author INTEGER,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS chat(
-                    chat_id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    author INTEGER, address INTEGER,
-                    encryption_enabled BOOLEAN DEFAULT 0,
-                    rotor_order TEXT DEFAULT '[1,2,3]',
-                    rotor_positions TEXT DEFAULT '["А","А","А"]',
-                    ring_settings TEXT DEFAULT '[0,0,0]',
-                    reflector TEXT DEFAULT 'B'
-                )
-            """)
-            db.commit()
+        self.database = DatabaseClient()
 
     def handle_client(self, client_socket, address):
         print(f"Новое подключение: {address}")
@@ -61,6 +34,7 @@ class ChatServer:
             print(f"Клиент {address} отключен")
 
     def process_request(self, request):
+        print(f"NEW REQUEST: {request}")
         action = request.get('action')
 
         try:
@@ -102,17 +76,14 @@ class ChatServer:
             return {'status': 'error', 'message': str(e)}
 
     def login(self, login, password):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("SELECT * FROM users WHERE login=?", (login,))
-            data = cursor.fetchall()
+        data = self.database.log_in(login)
 
-            if not data:
-                return {'status': 'error', 'message': 'Неверный логин'}
-            if data[0][2] == password:
-                return {'status': 'success', 'user_id': data[0][0]}
-            else:
-                return {'status': 'error', 'message': 'Неверный пароль'}
+        if not data:
+            return {'status': 'error', 'message': 'Неверный логин'}
+        if data[0][2] == password:
+            return {'status': 'success', 'user_id': data[0][0]}
+        else:
+            return {'status': 'error', 'message': 'Неверный пароль'}
 
     def register(self, login, password):
         with sqlite3.connect("enigma_db.db") as db:
