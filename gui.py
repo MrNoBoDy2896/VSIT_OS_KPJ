@@ -69,6 +69,9 @@ def log_in_window():
 
 #///////////////////////////////////Главное окно//////////////////////////////////////
 def main_window(user_id):
+    chat_frame.pack_forget()
+    input_frame.pack_forget()
+
     title_lable.place_forget()
     reg_button.place_forget()
     log_in_button.place_forget()
@@ -79,7 +82,7 @@ def main_window(user_id):
     reg_enter_button.place_forget()
     log_in_enter_button.place_forget()
 
-    main_container = Frame(root)
+
     main_container.pack(fill=BOTH, expand=True)
 
     sidebar_frame = Frame(main_container, width=200, bg='#f0f0f0')
@@ -106,22 +109,17 @@ def main_window(user_id):
     scrollbar.pack(side=RIGHT, fill=Y)
 
     # ЧАТ
-    chat_frame = Frame(main_container, bg='white')
+
     chat_frame.pack(side=RIGHT, fill=BOTH, expand=True)
 
     chat_title = Label(chat_frame, text="Выберите чат", font=("Comic Sans MS", 16),
                        bg='#e0e0e0', pady=10)
     chat_title.pack(fill=X)
 
-    messages_container = Frame(chat_frame, bg='white')
-    messages_container.pack(fill=BOTH, expand=True, padx=10, pady=10)
-
-    # чистим
-    messages_display_frame = Frame(messages_container, bg='white')
-    messages_display_frame.pack(fill=BOTH, expand=True)
+    messages_display_frame = Frame(chat_frame, bg='white')
+    messages_display_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
     # Н ечистим черновик
-    input_frame = Frame(chat_frame, bg='white')
     input_frame.pack(fill=X, padx=10, pady=10)
 
     message_entry = Entry(input_frame, font=("Comic Sans MS", 14))
@@ -164,6 +162,9 @@ def select_chat(chat_id, other_user_id, user_login, chat_title, messages_frame, 
     chat_frame.current_other_user_id = other_user_id
     display_messages(chat_id, messages_frame)
 
+    input_frame.pack_forget()
+    input_frame.pack(fill=X, padx=10, pady=10)
+
 
 def display_messages(chat_id, messages_display_frame):
     for widget in messages_display_frame.winfo_children():
@@ -192,6 +193,8 @@ def display_messages(chat_id, messages_display_frame):
                           bg='#e3f2fd', relief=RAISED, padx=10, pady=5, wraplength=400,
                           justify=LEFT)
         msg_label.pack(fill=X, padx=5, pady=2, anchor='w')
+    msg_canvas.update_idletasks()
+    msg_canvas.yview_moveto(1.0)
 
 
 def create_new_chat_window(user_id, chat_scrollable_frame, chat_title, messages_frame, chat_frame):
@@ -235,7 +238,9 @@ def create_chat_and_close(user1_id, user2_id, user2_login, window, chat_scrollab
     select_chat(chat_id, user2_id, user2_login, chat_title, messages_frame, chat_frame)
 
 #/////////////////////////////////////////////////////////////////////////////////////
-
+main_container = Frame(root)
+chat_frame = Frame(main_container, bg='white')
+input_frame = Frame(chat_frame, bg='white')
 
 title_lable = Label(root, text="Enigma Chat", font=("Comic Sans MS", 20))
 reg_button = Button(root, text="Регистрация", font=("Comic Sans MS", 20), command=reg_window)
