@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 from db import *
 
 root = Tk()
@@ -19,6 +20,60 @@ def create_page(name):
     frame.grid(row=0, column=0, sticky="nsew")
     pages[name] = frame
     return frame
+
+
+def open_create_chat_dialog(user_id):
+    dialog = Toplevel(root)
+    dialog.title("Создать чат")
+    dialog.geometry("300x150")
+    dialog.resizable(False, False)
+
+    Label(dialog, text="Введите логин пользователя:",
+          font=("Comic Sans MS", 12)).pack(pady=10)
+
+    login_entry = Entry(dialog, font=("Comic Sans MS", 12))
+    login_entry.pack(pady=5, padx=20, fill=X)
+
+    def create_chat_action():
+        target_login = login_entry.get().strip()
+        if not target_login:
+            messagebox.showwarning("Ошибка", "Введите логин пользователя")
+            return
+
+        all_users = get_all_users()
+        target_user = None
+
+        for user in all_users:
+            if user[1] == target_login:
+                target_user = user
+                break
+
+        if not target_user:
+            messagebox.showwarning("Ошибка", f"Пользователь '{target_login}' не найден")
+            return
+
+        target_user_id = target_user[0]
+
+        if target_user_id == user_id:
+            messagebox.showwarning("Ошибка", "Нельзя создать чат с самим собой")
+            return
+
+        if chat_exists(user_id, target_user_id):
+            messagebox.showinfo("Информация", f"Чат с пользователем '{target_login}' уже существует")
+            dialog.destroy()
+            return
+
+        create_chat(user_id, target_user_id)
+        messagebox.showinfo("Успех", f"Чат с пользователем '{target_login}' создан")
+
+        update_chat_list(user_id)
+        dialog.destroy()
+
+    Button(dialog, text="Создать чат", font=("Comic Sans MS", 12),
+           command=create_chat_action).pack(pady=10)
+
+    login_entry.focus_set()
+    dialog.bind('<Return>', lambda e: create_chat_action())
 
 def show_page(name):
     pages[name].tkraise()
@@ -97,6 +152,9 @@ sidebar.grid_propagate(False)
 
 Label(sidebar, text="Чаты", font=("Comic Sans MS", 16),
       bg="#ddd").pack(fill=X)
+create_chat_btn = Button(sidebar, text="Создать чат", font=("Comic Sans MS", 12),
+                        command=lambda: open_create_chat_dialog(main_page.user_id))
+create_chat_btn.pack(pady=5)
 
 chat_list_canvas = Canvas(sidebar, bg="#f0f0f0", highlightthickness=0)
 chat_list_canvas.pack(side=LEFT, fill=BOTH, expand=True)
@@ -188,6 +246,10 @@ def send_message():
         msg_entry.delete(0, END)
         display_messages(main_page.current_chat)
 
+def on_enter_pressed(event):
+    send_message()
+
+msg_entry.bind('<Return>', on_enter_pressed)
 send_button = Button(input_frame, text="Отправить", command=send_message)
 send_button.grid(row=0, column=1, sticky="e", padx=(5,8), pady=6)
 
