@@ -31,7 +31,12 @@ class ChatServer:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS chat(
                     chat_id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    author INTEGER, address INTEGER
+                    author INTEGER, address INTEGER,
+                    encryption_enabled BOOLEAN DEFAULT 0,
+                    rotor_order TEXT DEFAULT '[1,2,3]',
+                    rotor_positions TEXT DEFAULT '["А","А","А"]',
+                    ring_settings TEXT DEFAULT '[0,0,0]',
+                    reflector TEXT DEFAULT 'B'
                 )
             """)
             db.commit()
@@ -73,7 +78,8 @@ class ChatServer:
                 )
             elif action == 'create_chat':
                 return self.create_chat(
-                    request['user1_id'], request['user2_id']
+                    request['user1_id'], request['user2_id'],
+                    request.get('encryption_settings')
                 )
             elif action == 'get_all_users':
                 return self.get_all_users()
@@ -81,6 +87,14 @@ class ChatServer:
                 return self.chat_exists(
                     request['user1_id'], request['user2_id']
                 )
+            elif action == 'get_chat_encryption_settings':
+                return self.get_chat_encryption_settings(request['chat_id'])
+            elif action == 'update_chat_encryption_settings':
+                return self.update_chat_encryption_settings(
+                    request['chat_id'], request['settings']
+                )
+            elif action == 'verify_password':
+                return self.verify_password(request['user_id'], request['password'])
             else:
                 return {'status': 'error', 'message': 'Неизвестное действие'}
 
@@ -116,7 +130,8 @@ class ChatServer:
                        CASE 
                            WHEN author = ? THEN address 
                            ELSE author 
-                       END as other_user
+                       END as other_user,
+                       encryption_enabled
                 FROM chat 
                 WHERE author = ? OR address = ?
             """, (user_id, user_id, user_id))
@@ -141,13 +156,26 @@ class ChatServer:
             db.commit()
             return {'status': 'success'}
 
-    def create_chat(self, user1_id, user2_id):
+    def create_chat(self, user1_id, user2_id, encryption_settings=None):
         with sqlite3.connect("enigma_db.db") as db:
             cursor = db.cursor()
-            cursor.execute(
-                "INSERT INTO chat (author, address) VALUES (?, ?)",
-                (user1_id, user2_id)
-            )
+
+            if encryption_settings:
+                cursor.execute("""
+                    INSERT INTO chat (author, address, encryption_enabled, 
+                                    rotor_order, rotor_positions, ring_settings, reflector) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (user1_id, user2_id, True,
+                      json.dumps(encryption_settings['rotor_order']),
+                      json.dumps(encryption_settings['rotor_positions']),
+                      json.dumps(encryption_settings['ring_settings']),
+                      encryption_settings['reflector']))
+            else:
+                cursor.execute(
+                    "INSERT INTO chat (author, address) VALUES (?, ?)",
+                    (user1_id, user2_id)
+                )
+
             db.commit()
             return {'status': 'success', 'chat_id': cursor.lastrowid}
 
@@ -168,6 +196,60 @@ class ChatServer:
             """, (user1_id, user2_id, user2_id, user1_id))
             exists = cursor.fetchone() is not None
             return {'status': 'success', 'exists': exists}
+
+    def get_chat_encryption_settings(self, chat_id):
+        with sqlite3.connect("enigma_db.db") as db:
+            cursor = db.cursor()
+            cursor.execute("""
+                SELECT encryption_enabled, rotor_order, rotor_positions, ring_settings, reflector 
+                FROM chat WHERE chat_id = ?
+            """, (chat_id,))
+            result = cursor.fetchone()
+
+            if result:
+                return {
+                    'status': 'success',
+                    'encryption_enabled': bool(result[0]),
+                    'rotor_order': json.loads(result[1]),
+                    'rotor_positions': json.loads(result[2]),
+                    'ring_settings': json.loads(result[3]),
+                    'reflector': result[4]
+                }
+            else:
+                return {'status': 'error', 'message': 'Чат не найден'}
+
+    def update_chat_encryption_settings(self, chat_id, settings):
+        with sqlite3.connect("enigma_db.db") as db:
+            cursor = db.cursor()
+            cursor.execute("""
+                UPDATE chat SET 
+                encryption_enabled = ?,
+                rotor_order = ?,
+                rotor_positions = ?,
+                ring_settings = ?,
+                reflector = ?
+                WHERE chat_id = ?
+            """, (
+                settings['encryption_enabled'],
+                json.dumps(settings['rotor_order']),
+                json.dumps(settings['rotor_positions']),
+                json.dumps(settings['ring_settings']),
+                settings['reflector'],
+                chat_id
+            ))
+            db.commit()
+            return {'status': 'success'}
+
+    def verify_password(self, user_id, password):
+        with sqlite3.connect("enigma_db.db") as db:
+            cursor = db.cursor()
+            cursor.execute("SELECT password FROM users WHERE user_id = ?", (user_id,))
+            result = cursor.fetchone()
+
+            if result and result[0] == password:
+                return {'status': 'success'}
+            else:
+                return {'status': 'error', 'message': 'Неверный пароль'}
 
     def start(self):
         self.server_socket.bind((self.host, self.port))

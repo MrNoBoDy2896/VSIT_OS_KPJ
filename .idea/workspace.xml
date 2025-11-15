@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25ffc3d2-1cb4-4fab-b682-f1e554ab9925" name="Changes" comment="Всё работает на моём ноуте, надо сделать что-то типа сервера">
-      <change afterPath="$PROJECT_DIR$/client_api.py" afterDir="false" />
+    <list default="true" id="25ffc3d2-1cb4-4fab-b682-f1e554ab9925" name="Changes" comment="я не знаю, что я сделала, но должно как-то работать">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -190,7 +187,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763214761988</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="я не знаю, что я сделала, но должно как-то работать">
+      <option name="closed" value="true" />
+      <created>1763215425030</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1763215425030</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -212,6 +217,7 @@
     <MESSAGE value="Полетели размеры и разметка, но поле ввода сообщений не исчезает, победа" />
     <MESSAGE value="разметка исправлена, можно уменьшить поле с кнопками чатов, но не критично. осталось все склеить" />
     <MESSAGE value="Всё работает на моём ноуте, надо сделать что-то типа сервера" />
-    <option name="LAST_COMMIT_MESSAGE" value="Всё работает на моём ноуте, надо сделать что-то типа сервера" />
+    <MESSAGE value="я не знаю, что я сделала, но должно как-то работать" />
+    <option name="LAST_COMMIT_MESSAGE" value="я не знаю, что я сделала, но должно как-то работать" />
   </component>
 </project>

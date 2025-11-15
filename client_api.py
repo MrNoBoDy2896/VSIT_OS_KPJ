@@ -64,12 +64,15 @@ class ChatClient:
             'author': author
         })
 
-    def create_chat(self, user1_id, user2_id):
-        return self.send_request({
+    def create_chat(self, user1_id, user2_id, encryption_settings=None):
+        request = {
             'action': 'create_chat',
             'user1_id': user1_id,
             'user2_id': user2_id
-        })
+        }
+        if encryption_settings:
+            request['encryption_settings'] = encryption_settings
+        return self.send_request(request)
 
     def get_all_users(self):
         return self.send_request({
@@ -81,6 +84,26 @@ class ChatClient:
             'action': 'chat_exists',
             'user1_id': user1_id,
             'user2_id': user2_id
+        })
+
+    def get_chat_encryption_settings(self, chat_id):
+        return self.send_request({
+            'action': 'get_chat_encryption_settings',
+            'chat_id': chat_id
+        })
+
+    def update_chat_encryption_settings(self, chat_id, settings):
+        return self.send_request({
+            'action': 'update_chat_encryption_settings',
+            'chat_id': chat_id,
+            'settings': settings
+        })
+
+    def verify_password(self, user_id, password):
+        return self.send_request({
+            'action': 'verify_password',
+            'user_id': user_id,
+            'password': password
         })
 
     def close(self):
