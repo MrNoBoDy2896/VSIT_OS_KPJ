@@ -236,6 +236,8 @@ msg_entry.grid(row=0, column=0, sticky="we", padx=(8, 5), pady=6)
 # Привязка Enter к отправке сообщения
 def on_enter_pressed(event):
     send_message()
+
+
 msg_entry.bind('<Return>', on_enter_pressed)
 
 
@@ -279,7 +281,8 @@ def display_messages(chat_id):
             reflector = enc_settings['reflector']
 
         for msg in msgs:
-            msg_id, text, code, chat, author = msg
+            # Берем только первые 5 значений, игнорируем timestamp
+            msg_id, text, code, chat, author = msg[:5]
 
             # Применяем шифрование если оно true
             display_text = text
@@ -328,7 +331,7 @@ def open_main_chat(user_id):
 def open_create_chat_dialog(user_id):
     dialog = Toplevel(root)
     dialog.title("Создать чат")
-    dialog.geometry("400x300")
+    dialog.geometry("400x400")  # Увеличил высоту для кнопки
     dialog.resizable(False, False)
     dialog.transient(root)
     dialog.grab_set()
@@ -434,8 +437,14 @@ def open_create_chat_dialog(user_id):
         else:
             messagebox.showerror("Ошибка", result['message'])
 
-    Button(dialog, text="Создать чат", font=("Comic Sans MS", 12),
-           command=create_chat_action).pack(pady=10)
+    button_frame = Frame(dialog)
+    button_frame.pack(pady=10, fill=X, padx=20)
+
+    Button(button_frame, text="Создать чат", font=("Comic Sans MS", 12),
+           command=create_chat_action).pack(side=LEFT, padx=5)
+
+    Button(button_frame, text="Отмена", font=("Comic Sans MS", 12),
+           command=dialog.destroy).pack(side=RIGHT, padx=5)
 
     login_entry.focus_set()
 
@@ -447,7 +456,6 @@ def open_encryption_dialog():
         messagebox.showinfo("Информация", "Выберите чат для настройки шифрования")
         return
 
-    # Запрашиваем пароль
     password_dialog = Toplevel(root)
     password_dialog.title("Подтверждение пароля")
     password_dialog.geometry("300x150")

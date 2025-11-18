@@ -1,7 +1,7 @@
 import socket
 import threading
-import sqlite3
 import json
+import sqlite3
 
 from db import DatabaseClient
 
@@ -69,11 +69,20 @@ class ChatServer:
                 )
             elif action == 'verify_password':
                 return self.verify_password(request['user_id'], request['password'])
+            elif action == 'get_user_login':
+                return self.get_user_login(request['user_id'])
             else:
                 return {'status': 'error', 'message': 'Неизвестное действие'}
 
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
+
+    def get_user_login(self, user_id):
+        login = self.database.get_user_login(user_id)
+        if login != "Неизвестный пользователь":
+            return {'status': 'success', 'login': login}
+        else:
+            return {'status': 'error', 'message': 'Пользователь не найден'}
 
     def login(self, login, password):
         data = self.database.log_in(login)
@@ -86,87 +95,44 @@ class ChatServer:
             return {'status': 'error', 'message': 'Неверный пароль'}
 
     def register(self, login, password):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("INSERT INTO users (login, password) VALUES (?, ?)",
-                           (login, password))
-            db.commit()
-            return {'status': 'success'}
+        self.database.add_user(login, password)
+        return {'status': 'success'}
 
     def get_user_chats(self, user_id):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("""
-                SELECT chat_id, 
-                       CASE 
-                           WHEN author = ? THEN address 
-                           ELSE author 
-                       END as other_user,
-                       encryption_enabled
-                FROM chat 
-                WHERE author = ? OR address = ?
-            """, (user_id, user_id, user_id))
-            chats = cursor.fetchall()
-            return {'status': 'success', 'chats': chats}
+        chats = self.database.get_user_chats(user_id)
+        return {'status': 'success', 'chats': chats}
 
     def get_chat_messages(self, chat_id):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("SELECT * FROM messages WHERE chat = ? ORDER BY msg_id ASC",
-                           (chat_id,))
-            messages = cursor.fetchall()
-            return {'status': 'success', 'messages': messages}
+        messages = self.database.get_chat_messages(chat_id)
+        return {'status': 'success', 'messages': messages}
 
     def send_message(self, text, chat_id, author):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute(
-                "INSERT INTO messages (text, code, chat, author) VALUES (?, ?, ?, ?)",
-                (text, '', chat_id, author)
-            )
-            db.commit()
-            return {'status': 'success'}
+        self.database.add_message(text, '', chat_id, author)
+        return {'status': 'success'}
 
     def create_chat(self, user1_id, user2_id, encryption_settings=None):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
+        chat_id = self.database.create_chat(user1_id, user2_id)
 
-            if encryption_settings:
-                cursor.execute("""
-                    INSERT INTO chat (author, address, encryption_enabled, 
-                                    rotor_order, rotor_positions, ring_settings, reflector) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (user1_id, user2_id, True,
-                      json.dumps(encryption_settings['rotor_order']),
-                      json.dumps(encryption_settings['rotor_positions']),
-                      json.dumps(encryption_settings['ring_settings']),
-                      encryption_settings['reflector']))
-            else:
-                cursor.execute(
-                    "INSERT INTO chat (author, address) VALUES (?, ?)",
-                    (user1_id, user2_id)
-                )
+        # Если есть настройки шифрования, обновляем их
+        if encryption_settings:
+            settings = {
+                'encryption_enabled': True,
+                'rotor_order': encryption_settings['rotor_order'],
+                'rotor_positions': encryption_settings['rotor_positions'],
+                'ring_settings': encryption_settings['ring_settings'],
+                'reflector': encryption_settings['reflector']
+            }
+            self.update_chat_encryption_settings(chat_id, settings)
 
-            db.commit()
-            return {'status': 'success', 'chat_id': cursor.lastrowid}
+        return {'status': 'success', 'chat_id': chat_id}
 
     def get_all_users(self):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("SELECT user_id, login FROM users")
-            users = cursor.fetchall()
-            return {'status': 'success', 'users': users}
+        users = self.database.get_all_users()
+        return {'status': 'success', 'users': users}
 
     def chat_exists(self, user1_id, user2_id):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("""
-                SELECT chat_id FROM chat 
-                WHERE (author = ? AND address = ?) 
-                   OR (author = ? AND address = ?)
-            """, (user1_id, user2_id, user2_id, user1_id))
-            exists = cursor.fetchone() is not None
-            return {'status': 'success', 'exists': exists}
+        exists = self.database.chat_exists(user1_id, user2_id)
+        return {'status': 'success', 'exists': exists}
 
     def get_chat_encryption_settings(self, chat_id):
         with sqlite3.connect("enigma_db.db") as db:
@@ -190,37 +156,14 @@ class ChatServer:
                 return {'status': 'error', 'message': 'Чат не найден'}
 
     def update_chat_encryption_settings(self, chat_id, settings):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("""
-                UPDATE chat SET 
-                encryption_enabled = ?,
-                rotor_order = ?,
-                rotor_positions = ?,
-                ring_settings = ?,
-                reflector = ?
-                WHERE chat_id = ?
-            """, (
-                settings['encryption_enabled'],
-                json.dumps(settings['rotor_order']),
-                json.dumps(settings['rotor_positions']),
-                json.dumps(settings['ring_settings']),
-                settings['reflector'],
-                chat_id
-            ))
-            db.commit()
-            return {'status': 'success'}
+        self.database.update_chat_encryption_settings(chat_id, settings)
+        return {'status': 'success'}
 
     def verify_password(self, user_id, password):
-        with sqlite3.connect("enigma_db.db") as db:
-            cursor = db.cursor()
-            cursor.execute("SELECT password FROM users WHERE user_id = ?", (user_id,))
-            result = cursor.fetchone()
-
-            if result and result[0] == password:
-                return {'status': 'success'}
-            else:
-                return {'status': 'error', 'message': 'Неверный пароль'}
+        if self.database.verify_password(user_id, password):
+            return {'status': 'success'}
+        else:
+            return {'status': 'error', 'message': 'Неверный пароль'}
 
     def start(self):
         self.server_socket.bind((self.host, self.port))

@@ -1,10 +1,58 @@
 import sqlite3
+import json
 
 
 class DatabaseClient:
 
     def __init__(self):
         self.connection = sqlite3.connect("enigma_db.db", check_same_thread=False)
+
+    def get_chat_encryption_settings(self, chat_id):
+        with self.connection as db:
+            cursor = db.cursor()
+            cursor.execute("""
+                SELECT encryption_enabled, rotor_order, rotor_positions, ring_settings, reflector 
+                FROM chat WHERE chat_id = ?
+            """, (chat_id,))
+            result = cursor.fetchone()
+
+            if result:
+                return {
+                    'encryption_enabled': bool(result[0]),
+                    'rotor_order': json.loads(result[1]),
+                    'rotor_positions': json.loads(result[2]),
+                    'ring_settings': json.loads(result[3]),
+                    'reflector': result[4]
+                }
+            return None
+
+    def update_chat_encryption_settings(self, chat_id, settings):
+        with self.connection as db:
+            cursor = db.cursor()
+            cursor.execute("""
+                UPDATE chat SET 
+                encryption_enabled = ?,
+                rotor_order = ?,
+                rotor_positions = ?,
+                ring_settings = ?,
+                reflector = ?
+                WHERE chat_id = ?
+            """, (
+                settings['encryption_enabled'],
+                json.dumps(settings['rotor_order']),
+                json.dumps(settings['rotor_positions']),
+                json.dumps(settings['ring_settings']),
+                settings['reflector'],
+                chat_id
+            ))
+            db.commit()
+
+    def verify_password(self, user_id, password):
+        with self.connection as db:
+            cursor = db.cursor()
+            cursor.execute("SELECT password FROM users WHERE user_id = ?", (user_id,))
+            result = cursor.fetchone()
+            return result and result[0] == password
 
     def add_user(self, login, password):
         with self.connection as db:
@@ -25,15 +73,16 @@ class DatabaseClient:
     def get_user_chats(self, user_id):
         with self.connection as db:
             cursor = db.cursor()
-            cursor.execute(f"""
+            cursor.execute("""
                 SELECT chat_id, 
                        CASE 
-                           WHEN author = {user_id} THEN address 
+                           WHEN author = ? THEN address 
                            ELSE author 
-                       END as other_user
+                       END as other_user,
+                       encryption_enabled
                 FROM chat 
-                WHERE author = {user_id} OR address = {user_id}
-            """)
+                WHERE author = ? OR address = ?
+            """, (user_id, user_id, user_id))
             return cursor.fetchall()
 
     def get_user_login(self, user_id):
@@ -72,9 +121,9 @@ class DatabaseClient:
     def chat_exists(self, user1_id, user2_id):
         with self.connection as db:
             cursor = db.cursor()
-            cursor.execute(f"""
+            cursor.execute("""
                 SELECT chat_id FROM chat 
-                WHERE (author = {user1_id} AND address = {user2_id}) 
-                   OR (author = {user2_id} AND address = {user1_id})
-            """)
+                WHERE (author = ? AND address = ?) 
+                   OR (author = ? AND address = ?)
+            """, (user1_id, user2_id, user2_id, user1_id))
             return cursor.fetchone() is not None

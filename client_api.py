@@ -1,9 +1,8 @@
 import socket
 import json
 
-
 class ChatClient:
-    def __init__(self, host='192.168.0.21', port=8080):
+    def __init__(self, host='localhost', port=8080):  # Изменен хост на localhost
         self.host = host
         self.port = port
         self.socket = None
@@ -104,6 +103,13 @@ class ChatClient:
             'action': 'verify_password',
             'user_id': user_id,
             'password': password
+        })
+
+    # ДОБАВЛЕННЫЙ МЕТОД
+    def get_user_login(self, user_id):
+        return self.send_request({
+            'action': 'get_user_login',
+            'user_id': user_id
         })
 
     def close(self):
