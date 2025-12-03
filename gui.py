@@ -8,7 +8,7 @@ client = ChatClient('localhost', 8080)
 
 root = Tk()
 root.title("Enigma Chat")
-root.geometry("600x400")
+root.geometry("700x400")
 
 container = Frame(root)
 container.pack(fill="both", expand=True)
@@ -146,13 +146,31 @@ def update_chat_list(user_id):
             # Добавляем иконку шифрования если оно включено
             chat_text = f"{username} {'🔒' if encryption_enabled else ''}"
 
+            # Создаем кнопку с обновленным обработчиком
             btn = Button(chat_list_frame, text=chat_text,
                          font=("Comic Sans MS", 14),
-                         command=lambda c=chat_id, o=other: select_chat(c, o))
+                         command=lambda c=chat_id, o=other: [select_chat(c, o), update_chat_list(user_id)])
             btn.pack(fill=X, pady=2)
 
     chat_list_frame.update_idletasks()
     chat_list_canvas.configure(scrollregion=chat_list_canvas.bbox("all"))
+
+
+def auto_refresh_messages():
+    if hasattr(main_page, "current_chat") and main_page.current_chat:
+        display_messages(main_page.current_chat)
+
+    # Обновляем каждые 5 секунд
+    root.after(5000, auto_refresh_messages)
+
+
+# Запускаем автообновление после авторизации
+def open_main_chat(user_id):
+    main_page.user_id = user_id
+    update_chat_list(user_id)
+    show_page("main")
+    # Запускаем автообновление
+    auto_refresh_messages()
 
 
 def get_user_login(user_id):
@@ -239,14 +257,18 @@ def on_enter_pressed(event):
 
 
 msg_entry.bind('<Return>', on_enter_pressed)
+current_chat_id = None
+current_user_id = None
 
 
 def send_message():
     text = msg_entry.get()
     if text and hasattr(main_page, "current_chat"):
+        # Всегда отправляем обычный текст
         result = client.send_message(text, main_page.current_chat, main_page.user_id)
         if result['status'] == 'success':
             msg_entry.delete(0, END)
+            # Обновляем отображение сообщений
             display_messages(main_page.current_chat)
         else:
             messagebox.showerror("Ошибка", result['message'])
@@ -255,14 +277,34 @@ def send_message():
 send_button = Button(input_frame, text="Отправить", command=send_message)
 send_button.grid(row=0, column=1, sticky="e", padx=(5, 8), pady=6)
 
+def schedule_message_refresh():
+    if current_chat_id:
+        display_messages(current_chat_id)
+    # Обновляем каждые 3 секунды
+    if hasattr(root, '_refresh_job'):
+        root.after_cancel(root._refresh_job)
+    root._refresh_job = root.after(3000, schedule_message_refresh)
+
 
 def select_chat(chat_id, other_id):
+    global current_chat_id, current_user_id
+    current_chat_id = chat_id
     main_page.current_chat = chat_id
     chat_title.config(text=f"Чат с {get_user_login(other_id)}")
     display_messages(chat_id)
+    if hasattr(root, '_refresh_job'):
+        root.after_cancel(root._refresh_job)
+    schedule_message_refresh()
 
 
 def display_messages(chat_id):
+    if not chat_id:
+        return
+
+    # Сохраняем текущую позицию прокрутки
+    scroll_pos = msg_canvas.yview()
+
+    # Очищаем старые сообщения
     for w in msg_frame.winfo_children():
         w.destroy()
 
@@ -270,9 +312,14 @@ def display_messages(chat_id):
     if result['status'] == 'success':
         msgs = result['messages']
 
-        # шифр чата
+        # Получаем настройки шифрования
         enc_settings = client.get_chat_encryption_settings(chat_id)
         encryption_enabled = False
+        rotor_order = [1, 2, 3]
+        rotor_positions = ['А', 'А', 'А']
+        ring_settings = [0, 0, 0]
+        reflector = 'B'
+
         if enc_settings['status'] == 'success':
             encryption_enabled = enc_settings['encryption_enabled']
             rotor_order = enc_settings['rotor_order']
@@ -280,46 +327,70 @@ def display_messages(chat_id):
             ring_settings = enc_settings['ring_settings']
             reflector = enc_settings['reflector']
 
+        # Проверяем и корректируем настройки
+        if not isinstance(rotor_order, list) or len(rotor_order) != 3:
+            rotor_order = [1, 2, 3]
+        if not isinstance(rotor_positions, list) or len(rotor_positions) != 3:
+            rotor_positions = ['А', 'А', 'А']
+        if not isinstance(ring_settings, list) or len(ring_settings) != 3:
+            ring_settings = [0, 0, 0]
+
         for msg in msgs:
             # Берем только первые 5 значений, игнорируем timestamp
             msg_id, text, code, chat, author = msg[:5]
 
-            # Применяем шифрование если оно true
+            # Определяем текст для отображения
             display_text = text
+
+            # Если шифрование включено, шифруем текст для отображения
+            if encryption_enabled and text and isinstance(text, str):
+                try:
+                    display_text = enigma_encrypt(
+                        text,
+                        rotor_order,
+                        rotor_positions,
+                        ring_settings,
+                        reflector
+                    )
+                except Exception as e:
+                    # Если возникает ошибка шифрования, показываем оригинальный текст
+                    print(f"Ошибка шифрования: {e}")
+                    display_text = f"[Ошибка шифрования] {text}"
+
+            # Определяем цвет фона в зависимости от отправителя
+            is_my_message = (author == main_page.user_id)
+            bg_color = "#c8e6ff" if is_my_message else "#e6e6e6"
+            anchor = "e" if is_my_message else "w"
+
+            # Создаем метку с текстом
+            bubble = Label(
+                msg_frame,
+                text=display_text,
+                bg=bg_color,
+                font=("Comic Sans MS", 12),
+                padx=10,
+                pady=6,
+                wraplength=400,
+                justify=LEFT
+            )
+            bubble.pack(anchor=anchor, padx=10, pady=3)
+
+            # Добавляем индикатор шифрования
             if encryption_enabled:
-                display_text = enigma_encrypt(
-                    text, rotor_order, rotor_positions, ring_settings, reflector
-                )
-
-            # моё
-            if author == main_page.user_id:
-                bubble = Label(
+                indicator = Label(
                     msg_frame,
-                    text=display_text,
-                    bg="#c8e6ff",  # голубой
-                    font=("Comic Sans MS", 12),
-                    padx=10,
-                    pady=6,
-                    wraplength=400,
-                    justify=LEFT
+                    text="🔒",
+                    bg=bg_color,
+                    font=("Arial", 8)
                 )
-                bubble.pack(anchor="e", padx=10, pady=3)  # ПРАВО
-
-            else:  # сабеседник
-                bubble = Label(
-                    msg_frame,
-                    text=display_text,
-                    bg="#e6e6e6",  # серый
-                    font=("Comic Sans MS", 12),
-                    padx=10,
-                    pady=6,
-                    wraplength=400,
-                    justify=LEFT
-                )
-                bubble.pack(anchor="w", padx=10, pady=3)  # ЛЕВО
+                indicator.pack(anchor=anchor, padx=(10 if anchor == 'w' else 0, 0 if anchor == 'w' else 10))
 
     msg_frame.update_idletasks()
-    msg_canvas.yview_moveto(1.0)
+    msg_canvas.configure(scrollregion=msg_canvas.bbox("all"))
+
+    # Восстанавливаем позицию прокрутки, если это не первый показ
+    if scroll_pos != (0.0, 1.0):
+        msg_canvas.yview_moveto(scroll_pos[0])
 
 
 def open_main_chat(user_id):
@@ -485,11 +556,10 @@ def open_encryption_dialog():
     password_entry.focus_set()
     password_dialog.bind('<Return>', lambda e: verify_and_open_settings())
 
-
 def open_encryption_settings_dialog():
     dialog = Toplevel(root)
     dialog.title("Управление шифрованием")
-    dialog.geometry("400x350")
+    dialog.geometry("400x400")
     dialog.resizable(False, False)
     dialog.transient(root)
     dialog.grab_set()
@@ -553,8 +623,9 @@ def open_encryption_settings_dialog():
             result = client.update_chat_encryption_settings(main_page.current_chat, settings)
             if result['status'] == 'success':
                 messagebox.showinfo("Успех", "Настройки шифрования обновлены")
-                display_messages(main_page.current_chat)  # Обновляем отображение сообщений
-                update_chat_list(main_page.user_id)  # Обновляем список чатов
+                # Обновляем отображение сообщений
+                display_messages(main_page.current_chat)
+                update_chat_list(main_page.user_id)
                 dialog.destroy()
             else:
                 messagebox.showerror("Ошибка", result['message'])
@@ -565,16 +636,19 @@ def open_encryption_settings_dialog():
     def disable_encryption():
         encryption_var.set(False)
         save_settings()
-    buttons_frame = Frame(dialog)
-    buttons_frame.pack(pady=10)
 
-    Button(buttons_frame, text="Сохранить настройки", font=("Comic Sans MS", 10),
+    # Фрейм для кнопок внизу диалога
+    buttons_frame = Frame(dialog)
+    buttons_frame.pack(pady=15)
+
+    # Теперь все функции определены до создания кнопок
+    Button(buttons_frame, text="Подтвердить", font=("Comic Sans MS", 10),
            command=save_settings).pack(side=LEFT, padx=5)
 
     Button(buttons_frame, text="Отключить шифрование", font=("Comic Sans MS", 10),
            command=disable_encryption).pack(side=LEFT, padx=5)
 
-    Button(buttons_frame, text="Выйти", font=("Comic Sans MS", 10),
+    Button(buttons_frame, text="Отмена", font=("Comic Sans MS", 10),
            command=dialog.destroy).pack(side=LEFT, padx=5)
 
 show_page("welcome")
