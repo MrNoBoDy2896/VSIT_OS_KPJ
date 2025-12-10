@@ -2,12 +2,13 @@ import socket
 import threading
 import json
 import sqlite3
+import argparse
 
 from db import DatabaseClient
 
 
 class ChatServer:
-    def __init__(self, host='0.0.0.0', port=8080):
+    def __init__(self, host='0.0.0.0', port=8080):  # Параметры конструктора
         self.host = host
         self.port = port
         self.clients = {}
@@ -181,5 +182,14 @@ class ChatServer:
 
 
 if __name__ == "__main__":
-    server = ChatServer()
+    parser = argparse.ArgumentParser(description='Запуск чат-сервера')
+    parser.add_argument('--host', type=str, default='0.0.0.0',
+                        help='IP адрес для прослушивания (по умолчанию: 0.0.0.0)')
+    parser.add_argument('--port', type=int, default=8080,
+                        help='Порт для прослушивания (по умолчанию: 8080)')
+
+    args = parser.parse_args()
+
+    print(f"Запуск сервера на {args.host}:{args.port}")
+    server = ChatServer(host=args.host, port=args.port)
     server.start()

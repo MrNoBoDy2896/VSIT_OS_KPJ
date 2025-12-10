@@ -4,11 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25ffc3d2-1cb4-4fab-b682-f1e554ab9925" name="Changes" comment="все работает">
-      <change afterPath="$PROJECT_DIR$/enigma_dll/build_dll.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/enigma_dll/dll_exports.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/enigma_dll/enigma_core.py" afterDir="false" />
+    <list default="true" id="25ffc3d2-1cb4-4fab-b682-f1e554ab9925" name="Changes" comment="длл добавлена">
+      <change afterPath="$PROJECT_DIR$/run_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/VSIT_OS_KPJ.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/VSIT_OS_KPJ.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/client_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/enigma_db.db" beforeDir="false" afterPath="$PROJECT_DIR$/enigma_db.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,10 +70,12 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Python.build_dll.executor": "Run",
+    "Python.build_dll_simple.executor": "Run",
     "Python.client.executor": "Run",
     "Python.db.executor": "Run",
     "Python.gui.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.run_server.executor": "Run",
     "Python.server.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -83,29 +89,7 @@
       <recent name="C:\Users\Alena\PycharmProjects\VSIT_OS_KPJ\src" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.build_dll">
-    <configuration name="build_dll" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="VSIT_OS_KPJ" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/enigma_dll" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/enigma_dll/build_dll.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.run_server">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="VSIT_OS_KPJ" />
       <option name="ENV_FILES" value="" />
@@ -120,6 +104,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="run_server" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="VSIT_OS_KPJ" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run_server.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -152,9 +158,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.build_dll" />
-        <item itemvalue="Python.main" />
+        <item itemvalue="Python.run_server" />
         <item itemvalue="Python.server" />
+        <item itemvalue="Python.main" />
       </list>
     </recent_temporary>
   </component>
@@ -278,7 +284,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764764533469</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="длл добавлена">
+      <option name="closed" value="true" />
+      <created>1764767096389</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1764767096389</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -303,6 +317,7 @@
     <MESSAGE value="я не знаю, что я сделала, но должно как-то работать" />
     <MESSAGE value="ничего не работает, но есть новое" />
     <MESSAGE value="все работает" />
-    <option name="LAST_COMMIT_MESSAGE" value="все работает" />
+    <MESSAGE value="длл добавлена" />
+    <option name="LAST_COMMIT_MESSAGE" value="длл добавлена" />
   </component>
 </project>

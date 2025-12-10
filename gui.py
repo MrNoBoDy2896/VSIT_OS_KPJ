@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 
 from client_api import ChatClient
 from enigma import enigma_encrypt
@@ -143,10 +143,8 @@ def update_chat_list(user_id):
             else:
                 username = "Неизвестный пользователь"
 
-            # Добавляем иконку шифрования если оно включено
             chat_text = f"{username} {'🔒' if encryption_enabled else ''}"
 
-            # Создаем кнопку с обновленным обработчиком
             btn = Button(chat_list_frame, text=chat_text,
                          font=("Comic Sans MS", 14),
                          command=lambda c=chat_id, o=other: [select_chat(c, o), update_chat_list(user_id)])
@@ -160,17 +158,51 @@ def auto_refresh_messages():
     if hasattr(main_page, "current_chat") and main_page.current_chat:
         display_messages(main_page.current_chat)
 
-    # Обновляем каждые 5 секунд
     root.after(5000, auto_refresh_messages)
 
 
-# Запускаем автообновление после авторизации
+def change_connection():
+    host = simpledialog.askstring(
+        "Изменение подключения",
+        "Введите IP адрес сервера:",
+        initialvalue=client.host
+    )
+    if host is None:
+        return
+
+    port = simpledialog.askinteger(
+        "Изменение подключения",
+        "Введите порт сервера:",
+        initialvalue=client.port,
+        minvalue=1,
+        maxvalue=65535
+    )
+    if port is None:
+        return
+
+    client.set_connection_params(host, port)
+
+    if client.connect():
+        messagebox.showinfo("Успех", f"Подключение изменено на {host}:{port}")
+    else:
+        messagebox.showerror("Ошибка", f"Не удалось подключиться к {host}:{port}")
+
+def add_connection_menu():
+    menubar = Menu(root)
+    root.config(menu=menubar)
+
+    settings_menu = Menu(menubar, tearoff=0)
+    menubar.add_cascade(label="Настройки", menu=settings_menu)
+    settings_menu.add_command(label="Изменить подключение", command=    change_connection)
+    settings_menu.add_separator()
+    settings_menu.add_command(label="Выход", command=root.quit)
+
+
 def open_main_chat(user_id):
     main_page.user_id = user_id
     update_chat_list(user_id)
     show_page("main")
-    # Запускаем автообновление
-    auto_refresh_messages()
+    add_connection_menu()
 
 
 def get_user_login(user_id):
@@ -422,7 +454,6 @@ def open_create_chat_dialog(user_id):
                                    variable=encryption_var, font=("Comic Sans MS", 10))
     encryption_check.pack(anchor="w", pady=5)
 
-    # Поля для настроек Энигмы
     settings_frame = Frame(encryption_frame)
     settings_frame.pack(fill=X, padx=10, pady=5)
 
